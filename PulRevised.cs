@@ -63,7 +63,7 @@ namespace NewPul
         const int TotalNumberOfRounds = 20;
 
         public List<Player> Players { get; private set; }
-        public Dictionary<string, HashSet<Card>> PlayerHands { get; private set; }
+        public Dictionary<string, List<Card>> PlayerHands { get; private set; }
         public Dictionary<string, int> PlayerScores { get; private set; }
         public Dictionary<string, int> PlayerBets { get; private set; }
         public Dictionary<Card, string> PlayersCardInStack { get; private set; }
@@ -78,7 +78,7 @@ namespace NewPul
         {
             int playersAmount = players.Length;
             Players = new List<Player>(playersAmount);
-            PlayerHands = new Dictionary<string, HashSet<Card>>(playersAmount);
+            PlayerHands = new Dictionary<string, List<Card>>(playersAmount);
             PlayerScores = new Dictionary<string, int>(playersAmount);
             PlayerBets = new Dictionary<string, int>(playersAmount);
 
@@ -101,6 +101,7 @@ namespace NewPul
             }
         }
 
+        // Returns a list of players of everyone who won in a tie or a list of one player
         public List<Player> StartGame()
         {
             CurrentDealerIndex = 0;
@@ -278,8 +279,8 @@ namespace NewPul
 
             foreach (Player player in Players)
             {
-                PlayerHands[player.Name] = new HashSet<Card>(amountOfCards);
-                player.Hand = new HashSet<Card>(amountOfCards);
+                PlayerHands[player.Name] = new List<Card>(amountOfCards);
+                player.Hand = new List<Card>(amountOfCards);
             }
 
             for (int i = 0; i < amountOfCards; i++)
@@ -359,7 +360,7 @@ namespace NewPul
             return deck;
         }
 
-        public static bool IsCardEligible(Card nextStackCard, Suit currentSuit, Suit trumfSuit, HashSet<Card> hand)
+        public static bool IsCardEligible(Card nextStackCard, Suit currentSuit, Suit trumfSuit, List<Card> hand)
         {
             // First, check if the player had nextStackCard in their hand
             // Second, check if nextStackCard's suit is of currentSuit, and if not, check if it had any other card of currentSuit on Player hand
@@ -393,9 +394,14 @@ namespace NewPul
     abstract class Player
     {
         public string Name;
-        public HashSet<Card> Hand;
+        public List<Card> Hand;
         public Card CurrentTrumf;
         public Card CurrentSuitCard = new Card(Suit.Joker, Rank.Ace, -1);
+
+        public Player(string name)
+        {
+            Name = name;
+        }
 
         public abstract int StickBidAmount();
         public abstract Card CardToStack(List<Card> currentStack);
