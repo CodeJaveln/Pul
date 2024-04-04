@@ -108,7 +108,8 @@ namespace NewPul
 
             for (int round = 1; round < TotalNumberOfRounds; round++)
             {
-                Deck = ShuffleDeck(CreateDeck());
+                Deck = CreateDeck();
+                ShuffleDeck(Deck);
 
                 int numOfStacks = DealCards(round);
 
@@ -349,15 +350,14 @@ namespace NewPul
             return deck;
         }
 
-        private List<Card> ShuffleDeck(List<Card> deck)
+        private void ShuffleDeck(List<Card> deck)
         {
-            for (int n = deck.Count; n > 1; n--)
+            int n = deck.Count;
+            while (1 < n--)
             {
                 int k = Random.Next(n + 1);
                 (deck[n], deck[k]) = (deck[k], deck[n]);
             }
-
-            return deck;
         }
 
         public static bool IsCardEligible(Card nextStackCard, Suit currentSuit, Suit trumfSuit, List<Card> hand)
