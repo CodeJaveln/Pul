@@ -132,7 +132,7 @@ namespace NewPul
             {
                 PlayersCardInStack = new Dictionary<Card, string>(Players.Count);
                 List<Card> currentStack = new List<Card>(Players.Count);
-                Suit currentSuit = Suit.Joker;
+                Card currentSuit = new Card(Suit.Joker, Rank.Ace, -1);
 
                 for (int j = CurrentDealerIndex; j < Players.Count + CurrentDealerIndex; j++)
                 {
@@ -142,11 +142,13 @@ namespace NewPul
                     else tempCurrentIndex = j;
 
                     Player currentPlayersTurn = Players[tempCurrentIndex];
+                    currentPlayersTurn.CurrentSuitCard = currentSuit;
 
                     Card nextStackCard = currentPlayersTurn.CardToStack(currentStack.ToList());
-                    if (!IsCardEligible(nextStackCard, currentSuit, Trumfen.Suit, PlayerHands[currentPlayersTurn.Name]))
+
+                    if (!IsCardEligible(nextStackCard, currentSuit.Suit, Trumfen.Suit, PlayerHands[currentPlayersTurn.Name], out IlelegibleReason exceptionCause))
                     {
-                        throw new Exception($"Player: {currentPlayersTurn.Name}, tried to cheat.");
+                        throw new Exception($"Player: {currentPlayersTurn.Name}, tried to cheat by {exceptionCause}.");
                     }
 
                     else
@@ -160,11 +162,7 @@ namespace NewPul
 
                         if (Players[CurrentDealerIndex].Name == currentPlayersTurn.Name)
                         {
-                            currentSuit = nextStackCard.Suit;
-                            foreach (Player player in Players)
-                            {
-                                player.CurrentSuitCard = nextStackCard;
-                            }
+                            currentSuit = nextStackCard;
                         }
                     }
                 }
@@ -360,7 +358,15 @@ namespace NewPul
             }
         }
 
-        public static bool IsCardEligible(Card nextStackCard, Suit currentSuit, Suit trumfSuit, List<Card> hand)
+        public enum IlelegibleReason
+        {
+            None,
+            CardNotOnHand,
+            CardNotCurrentSuit,
+            CardNotTrumfSuit,
+        }
+
+        public static bool IsCardEligible(Card nextStackCard, Suit currentSuit, Suit trumfSuit, List<Card> hand, out IlelegibleReason ilelegibleReason)
         {
             // First, check if the player had nextStackCard in their hand
             // Second, check if nextStackCard's suit is of currentSuit, and if not, check if it had any other card of currentSuit on Player hand
@@ -369,24 +375,33 @@ namespace NewPul
             // First check: Verify if the player has the nextStackCard in their hand
             if (!hand.Contains(nextStackCard))
             {
+                ilelegibleReason = IlelegibleReason.CardNotOnHand;
                 return false;
             }
 
             // Second check: If nextStackCard's suit is not the currentSuit,
             // verify if there are any cards of currentSuit in the player's hand
-            else if (nextStackCard.Suit != currentSuit && hand.Any(card => card.Suit == currentSuit))
+            else if (nextStackCard.Suit != currentSuit && currentSuit != Suit.Joker)
             {
-                return false;
-            }
-
-            // Third check: If nextStackCard's suit is not the trumfSuit,
-            // verify if there are any cards of trumfSuit in the player's hand
-            else if (nextStackCard.Suit != trumfSuit && hand.Any(card => card.Suit == trumfSuit))
-            {
-                return false;
+                if (hand.Any(card => card.Suit == currentSuit))
+                {
+                    ilelegibleReason = IlelegibleReason.CardNotCurrentSuit;
+                    return false;
+                }
+                else
+                {
+                    // Third check: If nextStackCard's suit is not the trumfSuit,
+                    // verify if there are any cards of trumfSuit in the player's hand
+                    if (nextStackCard.Suit != trumfSuit && trumfSuit != Suit.Joker && hand.Any(card => card.Suit == trumfSuit))
+                    {
+                        ilelegibleReason = IlelegibleReason.CardNotTrumfSuit;
+                        return false;
+                    }
+                }
             }
 
             // Card is eligible
+            ilelegibleReason = IlelegibleReason.None;
             return true;
         }
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ namespace NewPul
         public SmallBidder()
             : base("SmallBidder")
         {
-
+            
         }
 
         public override int StickBidAmount()
@@ -23,8 +24,10 @@ namespace NewPul
         {
             foreach (Card card in Hand)
             {
-                if (PulRevised.IsCardEligible(card, CurrentSuitCard.Suit, CurrentTrumf.Suit, Hand))
+                if (PulRevised.IsCardEligible(card, CurrentSuitCard.Suit, CurrentTrumf.Suit, Hand, out PulRevised.IlelegibleReason ilelegibleReasons))
+                {
                     return card;
+                }
             }
 
             return Hand[0];
