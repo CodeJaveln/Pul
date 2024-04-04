@@ -16,7 +16,7 @@ namespace Pul
 
             for (int i = 0; i < playerTypes.Count; i++)
             {
-                Console.WriteLine(i + " " + playerTypes[i].Name);
+                Console.WriteLine($"{i} {playerTypes[i].Name}");
             }
             string input = "";
             do
