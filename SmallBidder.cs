@@ -24,7 +24,7 @@ namespace NewPul
         {
             foreach (Card card in Hand)
             {
-                if (PulRevised.IsCardEligible(card, CurrentSuitCard.Suit, CurrentTrumf.Suit, Hand, out PulRevised.IlelegibleReason ilelegibleReasons))
+                if (PulRevised.IsCardEligible(card, CurrentSuitCard.Suit, CurrentTrumf.Suit, Hand, out _))
                 {
                     return card;
                 }
