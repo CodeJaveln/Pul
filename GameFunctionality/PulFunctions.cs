@@ -237,7 +237,6 @@ namespace Pul
                 }
                 else if (score.Value == bestScore)
                 {
-                    bestPlayers.Add(bestPlayer);
                     bestPlayers.Add(score.Key);
                 }
             }
