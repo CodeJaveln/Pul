@@ -1,175 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace NewPul
+namespace Pul
 {
-    /// <summary>
-    /// Defines the constants that represents the suits of a <see cref="Card"/>.
-    /// </summary>
-    enum Suit
-    {
-        Hearts, Diamonds, Clubs, Spades,
-        Joker,
-    }
-
-    /// <summary>
-    /// Defines the constants that represents the rank of a <see cref="Card"/>.
-    /// </summary>
-    enum Rank
-    {
-        Two = 2, Three, Four, Five, Six, Seven, Eight, Nine, Ten,
-        Jack, Queen, King, Ace,
-    }
-
-    /// <summary>
-    /// Represents a card with a <see cref="NewPul.Suit"/> and <see cref="NewPul.Rank"/>.
-    /// <br></br>
-    /// Every card also has an <see cref="int"/> to generate a unique hashcode for each card even if they have the same <see cref="NewPul.Suit"/> and <see cref="NewPul.Rank"/>.
-    /// </summary>
-    readonly struct Card
-    {
-        /// <summary>
-        /// Represents the suit of this card as a <see cref="NewPul.Suit"/>.
-        /// </summary>
-        public Suit Suit { get; }
-        /// <summary>
-        /// Represents the value of this card.
-        /// </summary>
-        public Rank Rank { get; }
-        /// <summary>
-        /// Used to generate a unique hash code with <see cref="GetHashCode"/>.
-        /// </summary>
-        private readonly int Id;
-
-        /// <summary>
-        /// Initializes a new card with the specified <paramref name="suit"/>, <paramref name="rank"/> and <paramref name="id"/>.
-        /// </summary>
-        /// <param name="suit">Represents the suit of the card.</param>
-        /// <param name="rank">Represents the rank of the card which is the value.</param>
-        /// <param name="id">An <see cref="int"/> that is used to generate a unique hash code with <see cref="GetHashCode"/>.</param>
-        public Card(Suit suit, Rank rank, int id)
-        {
-            Suit = suit;
-            Rank = rank;
-            Id = id;
-        }
-
-        /// <summary>
-        /// Converts the <see cref="Suit"/> and <see cref="Rank"/> of this card into a readable <see cref="string"/>.
-        /// </summary>
-        /// <returns>The type name in the representation of a <see cref="string"/>.</returns>
-        public override string ToString()
-        {
-            if (Suit == Suit.Joker) return "Joker";
-
-            return $"{Rank} of {Suit}";
-        }
-
-        /// <summary>
-        /// Returns a unique <see cref="int"/> to represent this card.
-        /// </summary>
-        /// <returns>The <see cref="Id"/> as a hash code for this card.</returns>
-        public override int GetHashCode()
-        {
-            return Id;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (!(obj is Card))
-                return false;
-
-            return Equals((Card)obj);
-        }
-
-        private bool Equals(Card card)
-        {
-            return card.Suit == Suit && card.Rank == Rank && card.Id == Id;
-        }
-    }
-
-    /// <summary>
-    /// Represents a deck of cards.
-    /// </summary>
-    class Deck
-    {
-        /// <summary>
-        /// Instance of the Random class for shuffling the deck in <see cref="Shuffle"/>.
-        /// </summary>
-        private readonly Random Random = new Random();
-        /// <summary>
-        /// Holds all the cards in the deck
-        /// </summary>
-        private List<Card> Cards;
-        /// <summary>
-        /// Gets the amount of cards in <see cref="Cards"/>.
-        /// </summary>
-        public int CardsAmount => Cards.Count;
-
-        /// <summary>
-        /// Makes <see cref="Cards"/> consist of 52 cards and 3 jokers. 
-        /// </summary>
-        public void Init()
-        {
-            const int NumOfJokers = 3;
-
-            Cards = new List<Card>(52 + NumOfJokers);
-            int currentId = 0;
-
-            // Create all 52 cards in a deck
-            foreach (Suit suit in Enum.GetValues(typeof(Suit)))
-            {
-                if (suit != Suit.Joker)
-                {
-                    foreach (Rank rank in Enum.GetValues(typeof(Rank)))
-                    {
-                        Cards.Add(new Card(suit, rank, currentId));
-                        currentId++;
-                    }
-                }
-            }
-
-            // Adds the amount of jokers equal to NumOfJokers
-            for (int i = 0; i < NumOfJokers; i++)
-            {
-                Cards.Add(new Card(Suit.Joker, Rank.Ace, currentId));
-                currentId++;
-            }
-        }
-
-        /// <summary>
-        /// Shuffles the cards in this deck using the <see href="https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle">Fisher-Yates algorithm</see>.
-        /// </summary>
-        public void Shuffle()
-        {
-            int n = Cards.Count;
-            while (1 < n--)
-            {
-                int k = Random.Next(n + 1);
-                (Cards[n], Cards[k]) = (Cards[k], Cards[n]);
-            }
-        }
-
-        /// <summary>
-        /// Takes the top card of <see cref="Cards"/> and removes it from the deck.
-        /// </summary>
-        /// <returns>The top card in the deck.</returns>
-        public Card TakeTopCard()
-        {
-            Card topCard = Cards[0];
-            Cards.RemoveAt(0);
-            return topCard;
-        }
-    }
-
     /// <summary>
     /// Contains the main game logic for Pul.
     /// </summary>
-    class PulRevised
+    class PulFunctions
     {
         const int TotalNumberOfRounds = 20;
 
@@ -204,7 +42,7 @@ namespace NewPul
         /// <summary>
         /// The deck of cards.
         /// </summary>
-        private Deck Deck = new Deck();
+        private Deck Deck;
         /// <summary>
         /// Is the index of which player that is dealer of the round and gets to choose the current suit with their <see cref="Card"/>.
         /// </summary>
@@ -214,8 +52,10 @@ namespace NewPul
         /// Prepares the game by initialising new lists and dictionaries and puts <paramref name="players"/> into <see cref="Players"/>.
         /// </summary>
         /// <param name="players">Are the <see cref="Player"/> objects that are going to play.</param>
-        public PulRevised(params Player[] players)
+        public PulFunctions(Random random, params Player[] players)
         {
+            Deck = new Deck(random);
+
             int playersAmount = players.Length;
             Players = new List<Player>(playersAmount);
             PlayerHands = new Dictionary<string, List<Card>>(playersAmount);
@@ -273,7 +113,7 @@ namespace NewPul
         /// Plays through one round of Pul which plays through the same number of stacks as each the number of player's cards.
         /// </summary>
         /// <param name="numOfStacks">Is how many stacks that should be played.</param>
-        /// <exception cref="Exception"></exception>
+        /// <exception cref="ArgumentException"></exception>
         private void PlayRound(int numOfStacks)
         {
             PlayerWonStacks = new int[Players.Count];
@@ -297,15 +137,13 @@ namespace NewPul
 
                     if (!IsCardEligible(nextStackCard, currentSuit.Suit, Trumfen.Suit, PlayerHands[currentPlayersTurn.Name], out IneligibleReason exceptionCause))
                     {
-                        throw new Exception($"Player: {currentPlayersTurn.Name}, tried to cheat by {exceptionCause}.");
+                        throw new ArgumentException($"Player: {currentPlayersTurn.Name}, tried to cheat by {exceptionCause}.");
                     }
 
                     else
                     {
                         PlayerHands[currentPlayersTurn.Name].Remove(nextStackCard);
-                        FindPlayer(currentPlayersTurn.Name)
-                            .Hand
-                            .Remove(nextStackCard);
+                        FindPlayer(currentPlayersTurn.Name).Hand.Remove(nextStackCard);
                         currentStack.Add(nextStackCard);
                         PlayersCardInStack.Add(nextStackCard, currentPlayersTurn.Name);
 
@@ -321,6 +159,9 @@ namespace NewPul
             }
         }
 
+        /// <summary>
+        /// Updates the player scores based on the amount of stacks they won.
+        /// </summary>
         private void UpdateScores()
         {
             for (int i = 0; i < Players.Count; i++)
@@ -332,6 +173,11 @@ namespace NewPul
             }
         }
 
+        /// <summary>
+        /// Checks the stack and returns the best card played.
+        /// </summary>
+        /// <param name="currentStack">Is the list of cards played during the current stack.</param>
+        /// <returns>The best card in the stack.</returns>
         private Card BestCard(List<Card> currentStack)
         {
             Card bestCard = currentStack[0];
@@ -340,7 +186,7 @@ namespace NewPul
             {
                 if (card.Suit == Suit.Joker)
                 {
-                    bestCard = card;
+                    bestCard = card; // The latest joker is always best.
                 }
                 else if ((card.Suit == Trumfen.Suit && bestCard.Suit != Trumfen.Suit) || (card.Suit == Trumfen.Suit && bestCard.Suit == Trumfen.Suit && card.Rank > bestCard.Rank))
                 {
@@ -359,11 +205,19 @@ namespace NewPul
             return bestCard;
         }
 
+        /// <summary>
+        /// Takes in a player name and returns the player object with the same name.
+        /// </summary>
+        /// <param name="name">Name of a <see cref="Player"/> instance in <see cref="Players"/></param>
+        /// <returns>A player instance with the same name from <see cref="Players"/>.</returns>
         private Player FindPlayer(string name)
         {
             return Players.Find(player => player.Name == name);
         }
 
+        /// <summary>
+        /// Gets what each <see cref="Player"/> instance in <see cref="Players"/> bets.
+        /// </summary>
         private void GetPlayerBets()
         {
             PlayerBets = new Dictionary<string, int>(Players.Count);
@@ -373,6 +227,10 @@ namespace NewPul
             }
         }
 
+        /// <summary>
+        /// Checks all scores of <see cref="Players"/> and returns the winners.
+        /// </summary>
+        /// <returns>A list of players who won the game.</returns>
         private List<Player> DetermineWinner()
         {
             int bestScore = 0;
@@ -412,10 +270,10 @@ namespace NewPul
         }
 
         /// <summary>
-        /// 
+        /// Gets how many cards should be dealt, how many can be dealt, and deals it to all <see cref="Players"/>.
         /// </summary>
-        /// <param name="round"></param>
-        /// <returns></returns>
+        /// <param name="round">The current round in the game.</param>
+        /// <returns>How many stacks that can be played in the current round.</returns>
         private int DealCards(int round)
         {
             int amountOfCards = NumberOfStacks(round);
@@ -536,77 +394,6 @@ namespace NewPul
             // Card is eligible
             ineligibleReason = IneligibleReason.None;
             return true;
-        }
-    }
-
-    /// <summary>
-    /// Represents an outline of a player class that it should follow.
-    /// </summary>
-    abstract class Player
-    {
-        /// <summary>
-        /// Represents the name of the <see cref="Player"/>
-        /// </summary>
-        public string Name;
-        /// <summary>
-        /// Represents the player's hand of cards.
-        /// </summary>
-        /// <remarks>
-        /// The hand is stored as a <see cref="List{T}"/> of <see cref="Card"/> objects.
-        /// Modifying this local reference to <see cref="Hand"/> will not change the actual hand in the game.
-        /// </remarks>
-        public List<Card> Hand;
-        /// <summary>
-        /// Represents the current trumf card.
-        /// </summary>
-        /// <remarks>
-        /// The current trumf card is stored as a <see cref="Card"/> struct externally in the <see cref="PulRevised"/> class.
-        /// <br></br>
-        /// Modifying the value of this field will not change the <see cref="PulRevised.Trumfen"/> property in the game.
-        /// </remarks>
-        public Card CurrentTrumf;
-        /// <summary>
-        /// Represents the top card in the current stack, which is the main suit.
-        /// </summary>
-        /// <remarks>
-        /// The top card is stored as a <see cref="Card"/> struct externally in the <see cref="PulRevised"/> class.
-        /// <br></br>
-        /// Modifying the value of this field will not change the top card in the stack.
-        /// </remarks>
-        public Card CurrentSuitCard;
-
-        /// <summary>
-        /// Constructor for creating a player instance, which sets <see cref="Name"/>.
-        /// </summary>
-        /// <param name="name">The name of the player in the game.</param>
-        public Player(string name)
-        {
-            Name = name;
-        }
-
-        /// <summary>
-        /// Asks the player to bid on the number of stacks they expect to win.
-        /// </summary>
-        /// <returns>The player's bid indicating the number of stacks they predict to win.</returns>
-        public abstract int StickBidAmount();
-        /// <summary>
-        /// Asks the player which card it wants to put in the stack.
-        /// </summary>
-        /// <remarks>
-        /// The <paramref name="currentStack"/> parameter holds a copy of the cards played in the current stack.
-        /// <br></br>
-        /// Modifying the elements of this list will not affect the game's actual stack.
-        /// </remarks>
-        /// <param name="currentStack">A list containing all the cards played in the current stack.</param>
-        /// <returns>The <see cref="Card"/> from <see cref="Hand"/> that the player wants to put in the stack.</returns>
-        public abstract Card CardToStack(List<Card> currentStack);
-        /// <summary>
-        /// Returns the name of the player.
-        /// </summary>
-        /// <returns>The <see cref="Name"/> as a string.</returns>
-        public override string ToString()
-        {
-            return Name;
         }
     }
 }

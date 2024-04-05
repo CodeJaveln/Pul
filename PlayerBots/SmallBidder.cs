@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
-namespace NewPul
+namespace Pul
 {
     class SmallBidder : Player
     {
@@ -24,7 +19,7 @@ namespace NewPul
         {
             foreach (Card card in Hand)
             {
-                if (PulRevised.IsCardEligible(card, CurrentSuitCard.Suit, CurrentTrumf.Suit, Hand, out _))
+                if (PulFunctions.IsCardEligible(card, CurrentSuitCard.Suit, CurrentTrumf.Suit, Hand, out _))
                 {
                     return card;
                 }

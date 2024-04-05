@@ -43,10 +43,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GameFunctionality\Deck.cs" />
+    <Compile Include="PlayerBots\Player.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PulRevised.cs" />
-    <Compile Include="SmallBidder.cs" />
+    <Compile Include="GameFunctionality\PulFunctions.cs" />
+    <Compile Include="PlayerBots\SmallBidder.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

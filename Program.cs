@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using NewPul;
 
 namespace Pul
 {
@@ -10,6 +9,7 @@ namespace Pul
     {
         static void Main(string[] args)
         {
+            Random random = new Random();
             const int timesRunGame = 1000;
             List<Player> players = new List<Player>();
             List<Type> playerTypes = new List<Type>(Assembly.GetAssembly(typeof(Player)).GetTypes().Where((myType) => myType.IsClass && myType.IsSubclassOf(typeof(Player))));
@@ -48,7 +48,7 @@ namespace Pul
 
             for (int i = 1; i <= timesRunGame; i++)
             {
-                PulRevised game = new PulRevised(players.ToArray());
+                PulFunctions game = new PulFunctions(random, players.ToArray());
                 List<Player> WonPlayers = game.StartGame();
                 foreach (Player player in WonPlayers)
                 {
