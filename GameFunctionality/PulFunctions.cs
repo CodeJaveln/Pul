@@ -18,11 +18,11 @@ namespace Pul
         /// <summary>
         /// Holds the hands of the players, the key is the <see cref="Player.Name"/>.
         /// </summary>
-        private readonly Dictionary<Player, List<Card>> PlayerHands;
+        private Dictionary<Player, List<Card>> PlayerHands;
         /// <summary>
         /// Holds the individual scores of the players, the key is the <see cref="Player.Name"/>.
         /// </summary>
-        private readonly Dictionary<Player, int> PlayerScores;
+        private Dictionary<Player, int> PlayerScores;
         /// <summary>
         /// Holds each players bet, the key is the <see cref="Player.Name"/>.
         /// </summary>
@@ -224,7 +224,7 @@ namespace Pul
         private List<Player> DetermineWinner()
         {
             int bestScore = 0;
-            Player bestPlayer = null;
+            Player bestPlayer;
             List<Player> bestPlayers = new List<Player>(Players.Count);
             foreach (var score in PlayerScores)
             {
