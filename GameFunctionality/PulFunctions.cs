@@ -49,9 +49,19 @@ namespace Pul
         private int CurrentDealerIndex;
 
         /// <summary>
+        /// Prerpares the game by initialising new lists and dictionaries and puts <paramref name="players"/> into <see cref="Players"/>.
+        /// <br></br>
+        /// Creates a new instance of <see cref="Random"/>.
+        /// </summary>
+        /// <param name="players">Are the <see cref="Player"/> objects that are going to compete.</param>
+        public PulFunctions(params Player[] players) 
+            : this(new Random(), players) { }
+
+        /// <summary>
         /// Prepares the game by initialising new lists and dictionaries and puts <paramref name="players"/> into <see cref="Players"/>.
         /// </summary>
-        /// <param name="players">Are the <see cref="Player"/> objects that are going to play.</param>
+        /// <param name="random">Represents an instance of Random.</param>
+        /// <param name="players">Are the <see cref="Player"/> objects that are going to compete.</param>
         public PulFunctions(Random random, params Player[] players)
         {
             Deck = new Deck(random);

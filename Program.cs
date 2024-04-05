@@ -46,9 +46,9 @@ namespace Pul
             } while (input != "" || players.Count < 2);
 
 
+            PulFunctions game = new PulFunctions(random, players.ToArray());
             for (int i = 1; i <= timesRunGame; i++)
             {
-                PulFunctions game = new PulFunctions(random, players.ToArray());
                 List<Player> WonPlayers = game.StartGame();
                 foreach (Player player in WonPlayers)
                 {
