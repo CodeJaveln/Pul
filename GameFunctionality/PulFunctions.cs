@@ -14,39 +14,39 @@ namespace Pul
         /// <summary>
         /// Holds all the reference objects of the players in the game.
         /// </summary>
-        public List<Player> Players { get; private set; }
+        private readonly List<Player> Players;
         /// <summary>
         /// Holds the hands of the players, the key is the <see cref="Player.Name"/>.
         /// </summary>
-        public Dictionary<string, List<Card>> PlayerHands { get; private set; }
+        private readonly Dictionary<Player, List<Card>> PlayerHands;
         /// <summary>
         /// Holds the individual scores of the players, the key is the <see cref="Player.Name"/>.
         /// </summary>
-        public Dictionary<string, int> PlayerScores { get; private set; }
+        private readonly Dictionary<Player, int> PlayerScores;
         /// <summary>
         /// Holds each players bet, the key is the <see cref="Player.Name"/>.
         /// </summary>
-        public Dictionary<string, int> PlayerBets { get; private set; }
+        private Dictionary<Player, int> PlayerBets;
         /// <summary>
         /// Holds which player instance put which card, the key is the <see cref="Card"/> from the stack and the value is the <see cref="Player.Name"/>.
         /// </summary>
-        public Dictionary<Card, string> PlayersCardInStack { get; private set; }
+        private Dictionary<Card, Player> PlayersCardInStack;
         /// <summary>
         /// Holds how many stacks in the current round each player won.
         /// </summary>
-        public int[] PlayerWonStacks { get; private set; }
+        private int[] PlayerWonStacks;
         /// <summary>
         /// Is which <see cref="Card"/> is trumfen this round.
         /// </summary>
-        public Card Trumfen { get; private set; }
+        private Card Trumfen;
         /// <summary>
         /// The deck of cards.
         /// </summary>
-        private Deck Deck;
+        private readonly Deck Deck;
         /// <summary>
         /// Is the index of which player that is dealer of the round and gets to choose the current suit with their <see cref="Card"/>.
         /// </summary>
-        public int CurrentDealerIndex { get; private set; }
+        private int CurrentDealerIndex;
 
         /// <summary>
         /// Prepares the game by initialising new lists and dictionaries and puts <paramref name="players"/> into <see cref="Players"/>.
@@ -58,9 +58,9 @@ namespace Pul
 
             int playersAmount = players.Length;
             Players = new List<Player>(playersAmount);
-            PlayerHands = new Dictionary<string, List<Card>>(playersAmount);
-            PlayerScores = new Dictionary<string, int>(playersAmount);
-            PlayerBets = new Dictionary<string, int>(playersAmount);
+            PlayerHands = new Dictionary<Player, List<Card>>(playersAmount);
+            PlayerScores = new Dictionary<Player, int>(playersAmount);
+            PlayerBets = new Dictionary<Player, int>(playersAmount);
 
             Dictionary<string, int> numberOfRecurringNames = new Dictionary<string, int>();
             foreach (Player player in players)
@@ -77,7 +77,7 @@ namespace Pul
                 }
 
                 Players.Add(player);
-                PlayerScores[player.Name] = 0;
+                PlayerScores[player] = 0;
             }
         }
 
@@ -119,7 +119,7 @@ namespace Pul
             PlayerWonStacks = new int[Players.Count];
             for (int i = 0; i < numOfStacks; i++)
             {
-                PlayersCardInStack = new Dictionary<Card, string>(Players.Count);
+                PlayersCardInStack = new Dictionary<Card, Player>(Players.Count);
                 List<Card> currentStack = new List<Card>(Players.Count);
                 Card currentSuit = new Card(Suit.Joker, Rank.Ace, -1);
 
@@ -135,17 +135,17 @@ namespace Pul
 
                     Card nextStackCard = currentPlayersTurn.CardToStack(currentStack.ToList());
 
-                    if (!IsCardEligible(nextStackCard, currentSuit.Suit, Trumfen.Suit, PlayerHands[currentPlayersTurn.Name], out IneligibleReason exceptionCause))
+                    if (!IsCardEligible(nextStackCard, currentSuit.Suit, Trumfen.Suit, PlayerHands[currentPlayersTurn], out IneligibleReason exceptionCause))
                     {
                         throw new ArgumentException($"Player: {currentPlayersTurn.Name}, tried to cheat by {exceptionCause}.");
                     }
 
                     else
                     {
-                        PlayerHands[currentPlayersTurn.Name].Remove(nextStackCard);
-                        FindPlayer(currentPlayersTurn.Name).Hand.Remove(nextStackCard);
+                        PlayerHands[currentPlayersTurn].Remove(nextStackCard);
+                        currentPlayersTurn.Hand.Remove(nextStackCard);
                         currentStack.Add(nextStackCard);
-                        PlayersCardInStack.Add(nextStackCard, currentPlayersTurn.Name);
+                        PlayersCardInStack.Add(nextStackCard, currentPlayersTurn);
 
                         if (Players[CurrentDealerIndex].Name == currentPlayersTurn.Name)
                         {
@@ -155,7 +155,7 @@ namespace Pul
                 }
 
                 Card bestCard = BestCard(currentStack);
-                PlayerWonStacks[Players.IndexOf(FindPlayer(PlayersCardInStack[bestCard]))]++;
+                PlayerWonStacks[Players.IndexOf(PlayersCardInStack[bestCard])]++;
             }
         }
 
@@ -166,9 +166,9 @@ namespace Pul
         {
             for (int i = 0; i < Players.Count; i++)
             {
-                if (PlayerWonStacks[i] == PlayerBets[Players[i].Name])
+                if (PlayerWonStacks[i] == PlayerBets[Players[i]])
                 {
-                    PlayerScores[Players[i].Name] += PlayerWonStacks[i] + 10;
+                    PlayerScores[Players[i]] += PlayerWonStacks[i] + 10;
                 }
             }
         }
@@ -206,24 +206,14 @@ namespace Pul
         }
 
         /// <summary>
-        /// Takes in a player name and returns the player object with the same name.
-        /// </summary>
-        /// <param name="name">Name of a <see cref="Player"/> instance in <see cref="Players"/></param>
-        /// <returns>A player instance with the same name from <see cref="Players"/>.</returns>
-        private Player FindPlayer(string name)
-        {
-            return Players.Find(player => player.Name == name);
-        }
-
-        /// <summary>
         /// Gets what each <see cref="Player"/> instance in <see cref="Players"/> bets.
         /// </summary>
         private void GetPlayerBets()
         {
-            PlayerBets = new Dictionary<string, int>(Players.Count);
+            PlayerBets = new Dictionary<Player, int>(Players.Count);
             foreach (Player player in Players)
             {
-                PlayerBets[player.Name] = player.StickBidAmount();
+                PlayerBets[player] = player.StickBidAmount();
             }
         }
 
@@ -234,39 +224,25 @@ namespace Pul
         private List<Player> DetermineWinner()
         {
             int bestScore = 0;
-            string bestPlayer = "";
-            List<string> bestPlayersName = new List<string>(Players.Count);
+            Player bestPlayer = null;
+            List<Player> bestPlayers = new List<Player>(Players.Count);
             foreach (var score in PlayerScores)
             {
                 if (score.Value > bestScore)
                 {
                     bestScore = score.Value;
                     bestPlayer = score.Key;
-                    bestPlayersName = new List<string>();
+                    bestPlayers = new List<Player>();
+                    bestPlayers.Add(bestPlayer);
                 }
                 else if (score.Value == bestScore)
                 {
-                    bestPlayersName.Add(bestPlayer);
-                    bestPlayersName.Add(score.Key);
-                    bestPlayer = "";
+                    bestPlayers.Add(bestPlayer);
+                    bestPlayers.Add(score.Key);
                 }
             }
 
-            List<Player> bestPlayers = new List<Player>();
-            if (bestPlayer != "")
-            {
-                bestPlayers.Add(FindPlayer(bestPlayer));
-                return bestPlayers;
-            }
-            else
-            {
-                foreach (string playerName in bestPlayersName)
-                {
-                    bestPlayers.Add(FindPlayer(playerName));
-                }
-
-                return bestPlayers;
-            }
+            return bestPlayers;
         }
 
         /// <summary>
@@ -290,7 +266,7 @@ namespace Pul
 
             foreach (Player player in Players)
             {
-                PlayerHands[player.Name] = new List<Card>(amountOfCards);
+                PlayerHands[player] = new List<Card>(amountOfCards);
                 player.Hand = new List<Card>(amountOfCards);
             }
 
@@ -300,7 +276,7 @@ namespace Pul
                 {
                     Card topCard = Deck.TakeTopCard();
 
-                    PlayerHands[player.Name].Add(topCard);
+                    PlayerHands[player].Add(topCard);
                     player.Hand.Add(topCard);
                 }
             }
