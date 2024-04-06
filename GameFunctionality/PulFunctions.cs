@@ -96,7 +96,7 @@ namespace Pul
         /// </summary>
         /// <returns>The list of <see cref="Player"/> objects that won the game.</returns>
         // Returns a list of players of everyone who won in a tie or a list of one player
-        public List<Player> StartGame()
+        public List<Player> PlayGame()
         {
             CurrentDealerIndex = 0;
 

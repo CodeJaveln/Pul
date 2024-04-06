@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GameFunctionality\Deck.cs" />
+    <Compile Include="PlayerBots\BasicPlayer.cs" />
     <Compile Include="PlayerBots\Player.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
